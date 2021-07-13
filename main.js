@@ -1,43 +1,30 @@
-const http = require('http');
-const mdbClient = require('mongodb').MongoClient;
+let express = require('express');
+let multer = require('multer');
+let app = express();
 
-let URL = "mongodb+srv://mdriaz:rGEdMnsrHkZw9Dr4@cluster0.4tyhn.mongodb.net?retryWrites=true&w=majority";
 
-mdbClient.connect(URL, {useUnifiedTopology : true},function (error, con) {
-    if (error){
-        console.log('Connection failed');
-    } else {
-        console.log('Connection established');
-        InsertData(con);
+let storage = multer.diskStorage({
+    destination: function (req, file, callBack) {
+        callBack(null, './uploads');
+    },
+    filename: function (req, file, callBack) {
+        callBack(null, file.originalname)
     }
-})
-
-function InsertData(con) {
-    let mydb = con.db('school');
-
-    let myCollection = mydb.collection('students');
-
-    let data = {
-        name: 'mdriaz',
-        roll: '01',
-        class: 'Diplomat',
-        city: 'Bogura'
-    }
-
-    myCollection.insertOne(data, function (error){
-        if (error){
-            console.log('Data insert failed')
-        } else {
-            console.log('Data insert success')
-        }
-    });
-}
-
-
-
-const server = http.createServer(function (req, res) {
-
 });
 
-server.listen(5050);
-console.log('http running');
+let upload = multer({storage: storage}).single('myfile');
+app.post('/',function (req,res) {
+    upload(req,res,function (error) {
+        if(error){
+            res.send("File Upload Fail")
+        }
+        else{
+            res.send("File Upload Success")
+        }
+    });
+});
+
+
+app.listen(8000,function () {
+    console.log("Server Run Success")
+})
